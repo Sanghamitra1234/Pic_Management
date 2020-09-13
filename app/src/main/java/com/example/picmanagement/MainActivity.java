@@ -2,13 +2,20 @@ package com.example.picmanagement;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
@@ -19,15 +26,62 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.PermissionRequestErrorListener;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
 
+
+public class MainActivity extends AppCompatActivity {
+    public static List<String> intBucketNames;
+    public static List<String> extBucketNames;
+    public static ArrayList<Image> imageList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestStoragePermission();
+        Image images = new Image();
+        imageList=new ArrayList<>();
+        intBucketNames=getFolders(images.cursorInt,MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+       extBucketNames=getFolders(images.cursorExt,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.folderView);
+        // set a LinearLayoutManager with default vertical orientation
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        //Send data to adapter
+        FolderAdapter folderAdapter = new FolderAdapter(MainActivity.this, intBucketNames);
+        recyclerView.setAdapter(folderAdapter); // set the Adapter to RecyclerView
+        if(extBucketNames.size()!=0){
+            FolderAdapter folderAdapter1 = new FolderAdapter(MainActivity.this, extBucketNames);
+            recyclerView.setAdapter(folderAdapter1);
+        }
+
+    }
+
+    public List<String> getFolders(Cursor c, Uri uri){
+        List<String> folder=new ArrayList<>();
+        Image i=new Image();
+        int idColumn = c.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+        int nameColumn = c.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME);
+        int bucketName=c.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+
+        while(c.moveToNext()) {
+            String folderNameSingle=c.getString(bucketName);
+            String name=c.getString(nameColumn);
+            long id=c.getLong(idColumn);
+            //Uri contentUri = ContentUris.withAppendedId(uri, id);
+           // Log.v("cursor", folderNameSingle+" "+id+" "+nameColumn);
+            imageList.add(new Image(null,name,folderNameSingle));
+            if (!folder.contains(folderNameSingle)) {
+                folder.add(folderNameSingle);
+            }
+
+
+        }
+        return folder;
     }
     private void requestStoragePermission() {
         Dexter.withActivity(this)
@@ -92,4 +146,31 @@ public class MainActivity extends AppCompatActivity {
         intent.setData(uri);
         startActivityForResult(intent, 101);
     }
+
+    class Image {
+        public Uri uri;
+        public String name;
+        public String bucket_name;
+
+        public Image() {}
+
+        public Image(Uri uri, String name, String bucket_name) {
+            this.uri = uri;
+            this.name = name;
+            this.bucket_name = bucket_name;
+        }
+
+
+
+        Cursor cursorInt = getContentResolver().query(
+                MediaStore.Images.Media.INTERNAL_CONTENT_URI,
+                null, "_data IS NOT NULL) GROUP BY (bucket_display_name",
+                null, null);
+
+        Cursor cursorExt = getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, "_data IS NOT NULL) GROUP BY (bucket_display_name",
+                null, null);
+    }
+
 }
