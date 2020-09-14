@@ -45,15 +45,12 @@ public class FolderAdapter extends RecyclerView.Adapter <FolderAdapter.FolderVie
     public void onBindViewHolder(@NonNull FolderAdapter.FolderViewHolder holder,  int position) {
         holder.FolderTitleSingle.setText(folderNames.get(position));
         String s=folderNames.get(position);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        holder.itemView.setOnClickListener(view -> {
 
-                Intent newIntent = new Intent(view.getContext(), PhotoActivity.class);
-                newIntent.putExtra("FOLDER_NAME",s);
-                view.getContext().startActivity(newIntent);
+            Intent newIntent = new Intent(view.getContext(), PhotoActivity.class);
+            newIntent.putExtra("FOLDER_NAME",s);
+            view.getContext().startActivity(newIntent);
 
-            }
         });
     }
 

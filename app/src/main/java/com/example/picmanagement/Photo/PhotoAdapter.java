@@ -1,8 +1,9 @@
 package com.example.picmanagement.Photo;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.picmanagement.FolderAdapter;
+import com.example.picmanagement.OpenPhotos.OpenPhoto;
 import com.example.picmanagement.R;
 
 import java.util.ArrayList;
-import java.util.List;
+
 
 public class PhotoAdapter extends RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>{
     ArrayList<PhotoActivity.Photo> photoPath;
@@ -45,11 +46,20 @@ public class PhotoAdapter extends RecyclerView.Adapter <PhotoAdapter.PhotoViewHo
     @Override
     public void onBindViewHolder(@NonNull PhotoAdapter.PhotoViewHolder holder, int position) {
         Glide.with(context)
-                .load(photoPath.get(position).path)
-                .skipMemoryCache(true)
+                .load(photoPath.get(position).uri)
+                .centerCrop()
                 .into(holder.folderPhotos);
-//        Bitmap bitmap = BitmapFactory.decodeFile(photoPath.get(position).path);
-//        holder.folderPhotos.setImageBitmap(bitmap);
+        holder.itemView.setOnClickListener(view -> {
+
+            Intent newIntent = new Intent(view.getContext(), OpenPhoto.class);
+            newIntent.putExtra("PHOTO_URI",photoPath.get(position).uri.toString());
+
+
+            Log.v("kill", photoPath.get(position).uri.toString());
+            view.getContext().startActivity(newIntent);
+
+        });
+
     }
 
     @Override

@@ -10,8 +10,10 @@ import android.Manifest;
 import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -40,10 +42,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestStoragePermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
+
+                Log.v("checkelf", "permission granted");
+                createRecycler();
+
+            }else if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_DENIED){
+                Log.v("checkelf", "permisiion denied");
+            }else{
+                Log.v("checkelf", "bhai na ho payega permisiion denied");
+            }
+        }
+
+
+    }
+    public void createRecycler(){
         Image images = new Image();
         imageList=new ArrayList<>();
         intBucketNames=getFolders(images.cursorInt,MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-       extBucketNames=getFolders(images.cursorExt,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        extBucketNames=getFolders(images.cursorExt,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.folderView);
@@ -58,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             FolderAdapter folderAdapter1 = new FolderAdapter(MainActivity.this, extBucketNames);
             recyclerView.setAdapter(folderAdapter1);
         }
-
     }
 
     public List<String> getFolders(Cursor c, Uri uri){
@@ -84,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
         return folder;
     }
     private void requestStoragePermission() {
-        Dexter.withActivity(this)
+        Toast.makeText(getApplicationContext(), "inside req StoragePermisiion", Toast.LENGTH_SHORT).show();
+        Dexter.withContext(this)
                 .withPermissions(
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -93,13 +111,16 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
                         // check if all permissions are granted
-                        if (report.areAllPermissionsGranted()) {
-                            Toast.makeText(getApplicationContext(), "All permissions are granted!", Toast.LENGTH_SHORT).show();
-                        }
+
+                            if (report.areAllPermissionsGranted()) {
+                                Toast.makeText(getApplicationContext(), "All permissions are granted!", Toast.LENGTH_SHORT).show();
+                                createRecycler();
+                            }
 
                         // check for permanent denial of any permission
                         if (report.isAnyPermissionPermanentlyDenied()) {
                             // show alert dialog navigating to Settings
+                            Toast.makeText(getApplicationContext(), "setting dialogue shown!", Toast.LENGTH_SHORT).show();
                             showSettingsDialog();
                         }
                     }
@@ -109,33 +130,21 @@ public class MainActivity extends AppCompatActivity {
                         token.continuePermissionRequest();
                     }
                 }).
-                withErrorListener(new PermissionRequestErrorListener() {
-                    @Override
-                    public void onError(DexterError error) {
-                        Toast.makeText(getApplicationContext(), "Error occurred! ", Toast.LENGTH_SHORT).show();
-                    }
-                })
+                withErrorListener(error -> Toast.makeText(getApplicationContext(), "Error occurred! ", Toast.LENGTH_SHORT).show())
                 .onSameThread()
                 .check();
     }
 
     private void showSettingsDialog() {
+        Log.v("show setting dialogue", "dialogue shown");
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Need Permissions");
         builder.setMessage("This app needs permission to use this feature. You can grant them in app settings.");
-        builder.setPositiveButton("GOTO SETTINGS", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-                openSettings();
-            }
+        builder.setPositiveButton("GOTO SETTINGS", (dialog, which) -> {
+            dialog.cancel();
+            openSettings();
         });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
 
     }
@@ -164,12 +173,12 @@ public class MainActivity extends AppCompatActivity {
 
         Cursor cursorInt = getContentResolver().query(
                 MediaStore.Images.Media.INTERNAL_CONTENT_URI,
-                null, "_data IS NOT NULL) GROUP BY (bucket_display_name",
+                null, "bucket_display_name IS NOT NULL) GROUP BY (bucket_display_name",
                 null, null);
 
         Cursor cursorExt = getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                null, "_data IS NOT NULL) GROUP BY (bucket_display_name",
+                null, "bucket_display_name IS NOT NULL) GROUP BY (bucket_display_name",
                 null, null);
     }
 
