@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/crop"
+        android:icon="@drawable/crop"
+        android:title="Crop"
+        />
+
+    <item android:id="@+id/edit"
+        android:icon="@drawable/image_edit_back"
+        android:title="Edit"
+        />
+
+    <item android:id="@+id/home"
+        android:icon="@drawable/abc_vector_test"
+        android:title="Home"
+        />
+
+
+
+</menu>

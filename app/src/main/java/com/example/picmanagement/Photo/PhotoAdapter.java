@@ -3,6 +3,7 @@ package com.example.picmanagement.Photo;
 import android.content.Context;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,16 +15,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.picmanagement.OpenPhotos.OpenPhoto;
+import com.example.picmanagement.Photos;
 import com.example.picmanagement.R;
 
 import java.util.ArrayList;
 
 
 public class PhotoAdapter extends RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>{
-    ArrayList<PhotoActivity.Photo> photoPath;
+    public ArrayList<Photos> photoPath;
     Context context;
 
-    public PhotoAdapter(Context context, ArrayList<PhotoActivity.Photo> photoPath){
+    public PhotoAdapter(Context context, ArrayList<Photos> photoPath){
         this.context=context;
         this.photoPath=photoPath;
     }
@@ -53,8 +55,9 @@ public class PhotoAdapter extends RecyclerView.Adapter <PhotoAdapter.PhotoViewHo
 
             Intent newIntent = new Intent(view.getContext(), OpenPhoto.class);
             newIntent.putExtra("PHOTO_URI",photoPath.get(position).uri.toString());
-
-
+            newIntent.putExtra("PHOTO_URI_POSITION", position);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("imgList", photoPath);
             Log.v("kill", photoPath.get(position).uri.toString());
             view.getContext().startActivity(newIntent);
 

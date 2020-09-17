@@ -12,28 +12,16 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.example.picmanagement.Photos;
 import com.example.picmanagement.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
-public class PhotoActivity extends AppCompatActivity {
-    class Photo{
-        public Photo(){};
-        public Uri uri;
-        public String name;
-        public String bucket_name;
-        public String path;
+public class PhotoActivity extends AppCompatActivity  implements Serializable {
 
-        public Photo(Uri uri, String name, String bucket_name, String path) {
-            this.uri = uri;
-            this.name = name;
-            this.bucket_name = bucket_name;
-            this.path=path;
-        }
-
-    }
-
+    public static ArrayList<Photos> imageList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +29,7 @@ public class PhotoActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         String bucketName = extras.getString("FOLDER_NAME").toString();
         //Log.v("linkedFile", bucketName);
-        ArrayList<Photo> imageList = new ArrayList<>();
+        imageList = new ArrayList<>();
         getImages(bucketName,imageList);
 
         for(int i=0;i<imageList.size();i++){
@@ -54,7 +42,7 @@ public class PhotoActivity extends AppCompatActivity {
         PhotoAdapter photoAdapter = new PhotoAdapter(this, imageList);
         recyclerView.setAdapter(photoAdapter);
     }
-    public void getImages(String album_name, ArrayList<Photo> imageList){
+    public void getImages(String album_name, ArrayList<Photos> imageList){
         Uri uriExternal= MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         Uri uriInternal=MediaStore.Images.Media.INTERNAL_CONTENT_URI;
 
@@ -75,8 +63,11 @@ public class PhotoActivity extends AppCompatActivity {
 
             Uri contentUri = ContentUris.withAppendedId(uriExternal, id); // Have to change soon
 
-            imageList.add(new Photo(contentUri,name,folderNameSingle,null));
+            imageList.add(new Photos(contentUri,name,folderNameSingle,null));
 
         }
+    }
+    public static  ArrayList<Photos> getPhotoArray(){
+        return  imageList;
     }
 }
